@@ -1,0 +1,43 @@
+{
+  "name": "realtime-pricing-pipeline",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": true
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff",
+        "ms-python.black-formatter",
+        "vscjava.vscode-java-pack",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python3",
+        "[python]": {
+          "editor.defaultFormatter": "ms-python.black-formatter",
+          "editor.formatOnSave": true
+        }
+      }
+    }
+  },
+  "forwardPorts": [9092, 8081, 8083, 8080, 8501, 5432],
+  "portsAttributes": {
+    "9092": { "label": "Kafka broker" },
+    "8081": { "label": "Schema Registry" },
+    "8083": { "label": "Kafka Connect" },
+    "8080": { "label": "Kafka UI" },
+    "8501": { "label": "Streamlit dashboard" },
+    "5432": { "label": "Postgres + pgvector" }
+  },
+  "postCreateCommand": "pip install --user -r requirements-dev.txt && pre-commit install",
+  "remoteUser": "vscode"
+}
