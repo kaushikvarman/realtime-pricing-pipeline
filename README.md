@@ -1,7 +1,7 @@
 # Real-Time Dynamic Pricing Pipeline
 
-[![lint](https://github.com/OWNER/realtime-pricing-pipeline/actions/workflows/lint.yml/badge.svg)](https://github.com/OWNER/realtime-pricing-pipeline/actions/workflows/lint.yml)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/OWNER/realtime-pricing-pipeline)
+[![lint](https://github.com/kaushikvarman/realtime-pricing-pipeline/actions/workflows/lint.yml/badge.svg)](https://github.com/kaushikvarman/realtime-pricing-pipeline/actions/workflows/lint.yml)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/kaushikvarman/realtime-pricing-pipeline)
 
 End-to-end real-time pricing engine for e-commerce SKUs on high-demand days (Black Friday, Cyber Monday, Christmas). Demand signals, competitor snapshots, expiry pressure, and seasonal calendar drive per-SKU repricing in real time. Augmented with embedding-based competitor matching and an LLM anomaly explainer.
 
