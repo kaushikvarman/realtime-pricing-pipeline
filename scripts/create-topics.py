@@ -1,4 +1,3 @@
-
 """
   Idempotent Kafka topic creator.
 
@@ -13,29 +12,32 @@
       0   all topics in desired state
       1   one or more topics failed to create
 """
-from __future__ import annotations 
+
+from __future__ import annotations
 
 import argparse
-import subprocess 
-import sys 
+import subprocess
+import sys
 from pathlib import Path
 
-import yaml 
+import yaml
 
 CONTAINER = "kafka"
 BOOTSTRAP = "localhost:9092"
 
+
 def docker_exec(cmd: list[str]) -> subprocess.CompletedProcess:
     """Run a CLI command inside the running kafka container."""
     return subprocess.run(
-        ['docker','exec',CONTAINER, *cmd],
-        capture_output= True,
+        ["docker", "exec", CONTAINER, *cmd],
+        capture_output=True,
         text=True,
-        check = True,
+        check=True,
     )
 
+
 def list_existing_topics() -> set[str]:
-    result = docker_exec(["kafka-topics","--bootstrap-server",BOOTSTRAP, "--list"])
+    result = docker_exec(["kafka-topics", "--bootstrap-server", BOOTSTRAP, "--list"])
     return {line.strip() for line in result.stdout.splitlines() if line.strip()}
 
 
@@ -43,13 +45,19 @@ def create_topic(topic: dict, dry_run: bool) -> bool:
     name = topic["name"]
     cmd = [
         "kafka-topics",
-        "--bootstrap-server", BOOTSTRAP,
+        "--bootstrap-server",
+        BOOTSTRAP,
         "--create",
-        "--topic", name,
-        "--partitions", str(topic["partitions"]),
-        "--replication-factor", str(topic["replication"]),
-        "--config", f"cleanup.policy={topic['cleanup_policy']}",
-        "--config", f"retention.ms={topic['retention_ms']}",
+        "--topic",
+        name,
+        "--partitions",
+        str(topic["partitions"]),
+        "--replication-factor",
+        str(topic["replication"]),
+        "--config",
+        f"cleanup.policy={topic['cleanup_policy']}",
+        "--config",
+        f"retention.ms={topic['retention_ms']}",
     ]
     if dry_run:
         print(
@@ -70,10 +78,12 @@ def create_topic(topic: dict, dry_run: bool) -> bool:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Print actions without contacting the broker.")
-    parser.add_argument("--config", default="topics.yaml",
-                        help="Path to topics.yaml (default: ./topics.yaml)")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Print actions without contacting the broker."
+    )
+    parser.add_argument(
+        "--config", default="topics.yaml", help="Path to topics.yaml (default: ./topics.yaml)"
+    )
     args = parser.parse_args()
 
     spec = yaml.safe_load(Path(args.config).read_text())
@@ -102,4 +112,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
