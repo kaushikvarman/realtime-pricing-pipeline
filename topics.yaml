@@ -1,0 +1,92 @@
+ # Source of truth for all Kafka topics in the pricing pipeline.
+  # Applied via scripts/create-topics.sh (idempotent — safe to re-run).
+  #
+  # Schema:
+  #   name:            topic name (dot-namespaced by domain)
+  #   partitions:      parallelism budget; pick by expected throughput / key cardinality
+  #   replication:     1 for dev (single broker); 3 for prod
+  #   cleanup_policy:  'delete' (event stream) or 'compact' (latest-per-key snapshot)
+  #   retention_ms:    only meaningful when cleanup_policy=delete; -1 = infinite
+  #   key:             how messages are keyed; drives partition assignment
+  #   description:     one-liner for humans
+
+  topics:
+    # === Input streams (events flowing IN to the pipeline) ===
+
+    - name: demand.events
+      partitions: 6
+      replication: 1
+      cleanup_policy: delete
+      retention_ms: 604800000   # 7 days
+      key: sku_id
+      description: "Click/cart/view events from storefront. High volume."
+
+    - name: competitor.prices
+      partitions: 3
+      replication: 1
+      cleanup_policy: delete
+      retention_ms: 604800000   # 7 days
+      key: sku_id
+      description: "Scraped competitor price snapshots."
+
+    - name: inventory.events
+      partitions: 3
+      replication: 1
+      cleanup_policy: delete
+      retention_ms: 604800000   # 7 days
+      key: sku_id
+      description: "Stock-level updates and expiry windows."
+
+    # === Reference data (snapshots — compacted) ===
+
+    - name: product.catalog
+      partitions: 3
+      replication: 1
+      cleanup_policy: compact
+      retention_ms: -1          # infinite — latest value per SKU is the truth
+      key: sku_id
+      description: "Product master data. Compacted: latest value per SKU wins."
+
+    - name: calendar.events
+      partitions: 1
+      replication: 1
+      cleanup_policy: compact
+      retention_ms: -1
+      key: event_date
+      description: "Seasonal calendar (Black Friday, Christmas, etc.). Low volume, compacted."
+
+    # === Control plane ===
+
+    - name: simulation.commands
+      partitions: 1
+      replication: 1
+      cleanup_policy: delete
+      retention_ms: 86400000    # 1 day
+      key: command_id
+      description: "Operator commands to inject scenarios (e.g., 'spike demand on SKU-123')."
+
+    # === Output streams (results flowing OUT of the pipeline) ===
+
+    - name: pricing.decisions
+      partitions: 6
+      replication: 1
+      cleanup_policy: delete
+      retention_ms: 2592000000  # 30 days
+      key: sku_id
+      description: "Recommended prices per SKU. Sinks to Snowflake."
+
+    - name: pricing.audit
+      partitions: 3
+      replication: 1
+      cleanup_policy: delete
+      retention_ms: 7776000000  # 90 days — compliance window
+      key: sku_id
+      description: "Full decision lineage (which inputs drove which price). For audit/replay."
+
+    - name: pricing.dlq
+      partitions: 3
+      replication: 1
+      cleanup_policy: delete
+      retention_ms: 1209600000  # 14 days
+      key: original_topic
+      description: "Dead-letter queue for malformed/poison messages."
